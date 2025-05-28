@@ -42,7 +42,7 @@ def get_landscape_poster_url(movie_id: int):
 
     return None
 
-@app.get("/api/ds/poster")
+@app.get("/api/v1/poster")
 def fetch_landscape_poster(title: str = Query(...), year: Optional[int] = Query(None)):
     try:
         movie = search_tmdb_movie(title, year)
