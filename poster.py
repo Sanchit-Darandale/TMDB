@@ -54,6 +54,6 @@ def fetch_poster(title: str = Query(...), year: Optional[int] = Query(None)):
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/", response_class=PlainTextResponse)
+@app.get("/")
 def root():
-    return "This API is made by ՏIᒪᗴᑎT ᘜᕼOՏT ⚡️"
+    return "This API is made by @THE_DS_OFFICIAL"
