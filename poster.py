@@ -64,18 +64,4 @@ def fetch_landscape_poster(title: str = Query(...), year: Optional[int] = Query(
 
 @app.get("/")
 def root():
-    return {"message": "This API is made by @THE_DS_OFFICIAL"}
-
-@app.exception_handler(404)
-async def not_found(request: Request, exc: HTTPException):
-    return JSONResponse(
-        status_code=404,
-        content={
-            "error": "Invalid endpoint.",
-            "usage": {
-                "/": "API Info",
-                "/api/v1/poster?title=Movie&year=2023": "Fetch Hindi landscape poster"
-            },
-            "made_by": "@THE_DS_OFFICIAL"
-        },
-    )
+    return 'This API is made by @THE_DS_OFFICIAL'
