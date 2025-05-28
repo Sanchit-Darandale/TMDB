@@ -9,7 +9,7 @@
   "routes": [
     {
       "src": "/api/v1/poster",
-      "dest": "api/poster.py"
+      "dest": "poster.py"
     }
   ]
 }
