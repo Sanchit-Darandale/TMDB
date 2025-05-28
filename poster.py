@@ -23,15 +23,23 @@ def search_tmdb_movie(title: str, year: Optional[int] = None):
     data = r.json()
     return data["results"][0] if data["results"] else None
 
-def get_poster_url(movie_id: int):
-    r = requests.get(TMDB_IMAGE_URL.format(id=movie_id), params={"api_key": TMDB_API_KEY})
+def get_portrait_poster_url(movie_id: int):
+    url = TMDB_IMAGE_URL.format(id=movie_id)
+    params = {"api_key": TMDB_API_KEY}
+    r = requests.get(url, params=params)
     r.raise_for_status()
     data = r.json()
-    for img in data.get("posters", []):
-        if img.get("iso_639_1") == "hi":
-            return TMDB_BASE_IMAGE + img["file_path"]
-    if data.get("posters"):
-        return TMDB_BASE_IMAGE + data["posters"][0]["file_path"]
+
+    posters = data.get("posters", [])
+    # Prefer Hindi poster
+    for poster in posters:
+        if poster.get("iso_639_1") == "hi":
+            return TMDB_BASE_IMAGE + poster["file_path"]
+
+    # If no Hindi, return the first available poster
+    if posters:
+        return TMDB_BASE_IMAGE + posters[0]["file_path"]
+
     return None
 
 @app.get("/api/v1/poster")
@@ -41,11 +49,11 @@ def fetch_poster(title: str = Query(...), year: Optional[int] = Query(None)):
         if not movie:
             raise HTTPException(status_code=404, detail="Movie not found.")
 
-        backdrop_url = get_poster_url(movie["id"])
-        if not backdrop_url:
+        poster_url = get_portrait_poster_url(movie["id"])
+        if not poster_url:
             raise HTTPException(status_code=404, detail="No poster found.")
 
-        img_response = requests.get(backdrop_url)
+        img_response = requests.get(poster_url)
         if img_response.status_code != 200:
             raise HTTPException(status_code=500, detail="Failed to fetch image.")
 
