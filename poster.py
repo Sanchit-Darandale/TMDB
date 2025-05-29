@@ -42,6 +42,29 @@ def get_landscape_poster_url(movie_id: int):
 
     return None
 
+def fetch_duckduckgo_image(query: str) -> Optional[str]:
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+        params = {"q": f"{query} movie poster", "iax": "images", "ia": "images"}
+        html = requests.get("https://duckduckgo.com/", params=params, headers=headers).text
+        token_match = re.search(r'vqd=([\d-]+)\&', html)
+        if not token_match:
+            return None
+        vqd = token_match.group(1)
+        
+        api_url = f"https://duckduckgo.com/i.js"
+        response = requests.get(api_url, params={"l": "us-en", "o": "json", "q": f"{query} movie poster", "vqd": vqd}, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        if data["results"]:
+            return data["results"][0]["image"]
+    except Exception:
+        return None
+    return None
+    
 @app.get("/api/v1/poster")
 def fetch_landscape_poster(title: str = Query(...), year: Optional[int] = Query(None)):
     try:
@@ -51,7 +74,10 @@ def fetch_landscape_poster(title: str = Query(...), year: Optional[int] = Query(
 
         backdrop_url = get_landscape_poster_url(movie["id"])
         if not backdrop_url:
-            raise HTTPException(status_code=404, detail="No backdrop found.")
+            fallback_url = fetch_duckduckgo_image(title)
+            if not fallback_url:
+                raise HTTPException(status_code=404, detail="No poster found on TMDB or DuckDuckGo.")
+            backdrop_url = fallback_url
 
         img_response = requests.get(backdrop_url)
         if img_response.status_code != 200:
