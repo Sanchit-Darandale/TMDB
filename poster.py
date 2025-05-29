@@ -69,11 +69,12 @@ def fetch_duckduckgo_image(query: str) -> Optional[str]:
 def fetch_landscape_poster(title: str = Query(...), year: Optional[int] = Query(None)):
     try:
         movie = search_tmdb_movie(title, year)
-        if not movie:
-            raise HTTPException(status_code=404, detail="Movie not found.")
+        backdrop_url = None
+        if movie:
+            backdrop_url = get_landscape_poster_url(movie["id"])
 
-        backdrop_url = get_landscape_poster_url(movie["id"])
         if not backdrop_url:
+            # Fallback to DuckDuckGo
             fallback_url = fetch_duckduckgo_image(title)
             if not fallback_url:
                 raise HTTPException(status_code=404, detail="No poster found on TMDB or DuckDuckGo.")
@@ -82,12 +83,11 @@ def fetch_landscape_poster(title: str = Query(...), year: Optional[int] = Query(
         img_response = requests.get(backdrop_url)
         if img_response.status_code != 200:
             raise HTTPException(status_code=500, detail="Failed to fetch image.")
-
         return Response(content=img_response.content, media_type="image/jpeg")
 
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+        
 @app.get("/")
 def root():
     return 'This API is made by @THE_DS_OFFICIAL'
